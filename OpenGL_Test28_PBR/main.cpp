@@ -87,6 +87,31 @@ int main()
     string p2 = string(headDir) + "LightShader/PBR.fs";
     Shader shader(p1.c_str(), p2.c_str());
     
+//    unsigned int albedoTexture = loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/Iron-Scuffed_bl/Iron-Scuffed_basecolor.png");
+//    unsigned int normalTexture = loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/Iron-Scuffed_bl/Iron-Scuffed_normal.png");
+//    unsigned int metallicTexture = loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/Iron-Scuffed_bl/Iron-Scuffed_metallic.png");
+//    unsigned int roughnessTexture = loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/Iron-Scuffed_bl/Iron-Scuffed_roughness.png");
+    
+//    unsigned int albedoTexture =
+//    loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/Aluminum-Scuffed_Unreal-Engine/Aluminum-Scuffed_basecolor.png");
+//    unsigned int normalTexture =
+//    loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/Aluminum-Scuffed_Unreal-Engine/Aluminum-Scuffed_normal.png");
+//    unsigned int metallicTexture =
+//    loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/Aluminum-Scuffed_Unreal-Engine/Aluminum-Scuffed_metallic.png");
+//    unsigned int roughnessTexture =
+//    loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/Aluminum-Scuffed_Unreal-Engine/Aluminum-Scuffed_roughness.png");
+    
+//    unsigned int albedoTexture = loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/rustediron-streaks2-bl/rustediron-streaks_basecolor.png");
+//    unsigned int normalTexture = loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/rustediron-streaks2-bl/rustediron-streaks_normal.png");
+//    unsigned int metallicTexture = loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/rustediron-streaks2-bl/rustediron-streaks_metallic.png");
+//    unsigned int roughnessTexture = loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/rustediron-streaks2-bl/rustediron-streaks_roughness.png");
+    
+    unsigned int albedoTexture = loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/TEXTUREHAVEN材质包/rock_08/tex/albedo.png");
+    unsigned int normalTexture = loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/TEXTUREHAVEN材质包/rock_08/tex/normal.png");
+    unsigned int metallicTexture = loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/TEXTUREHAVEN材质包/rock_08/tex/specular.png");
+    unsigned int roughnessTexture = loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/TEXTUREHAVEN材质包/rock_08/tex/smoothness.png");
+    unsigned int aoTexture = loadTexture("/Users/haoxiangliang/Desktop/未命名文件夹/TEXTUREHAVEN材质包/rock_08/tex/occlusion.png");
+    
     // lighting info
     // -------------
     vec3 lightPositions[] = {
@@ -105,8 +130,11 @@ int main()
     // shader configuration
     // --------------------
     shader.use();
+    shader.setInt("albedoMap", 0);
+    shader.setInt("normalMap", 1);
+    shader.setInt("metallicMap", 2);
+    shader.setInt("roughnessMap", 3);
     shader.setVec3("albedo", 0.5f, 0.0f, 0.0f);
-    shader.setFloat("ao", 1.0f);
 
     int nrRows = 7;
     int nrColumns = 7;
@@ -134,25 +162,26 @@ int main()
         mat4 view = camera.GetViewMatrix();
         mat4 model = mat4(1.0f);
         shader.use();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, albedoTexture);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, normalTexture);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, metallicTexture);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, roughnessTexture);
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, aoTexture);
         shader.setVec3("camPos", camera.Position);
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
         
         for (int row = 0; row < nrRows; ++row)
         {
-            shader.setFloat("metallic", (float)row / (float)nrRows);
             for (int col = 0; col < nrColumns; ++col)
             {
-                // we clamp the roughness to 0.05 - 1.0 as perfectly smooth surfaces (roughness of 0.0) tend to look a bit off
-                // on direct lighting.
-                shader.setFloat("roughness", clamp((float)col / (float)nrColumns, 0.05f, 1.0f));
-                
                 model = mat4(1.0f);
-                model = translate(model, vec3(
-                    (col - (nrColumns / 2)) * spacing,
-                    (row - (nrRows / 2)) * spacing,
-                    0.0f
-                ));
+                model = translate(model, vec3((col - (nrColumns / 2)) * spacing, (row - (nrRows / 2)) * spacing, 0.0f));
                 shader.setMat4("model", model);
                 renderSphere();
             }
